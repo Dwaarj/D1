@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Agent Sales Tracker</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --font-sans: system-ui, -apple-system, sans-serif;
+    --color-text-primary: #1a1a1a;
+    --color-text-secondary: #6b7280;
+    --color-text-tertiary: #9ca3af;
+    --color-background-primary: #ffffff;
+    --color-background-secondary: #f9fafb;
+    --color-border-tertiary: rgba(0,0,0,0.12);
+    --color-border-secondary: rgba(0,0,0,0.25);
+    --color-border-primary: rgba(0,0,0,0.4);
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-text-primary: #f3f4f6;
+      --color-text-secondary: #9ca3af;
+      --color-text-tertiary: #6b7280;
+      --color-background-primary: #1f2937;
+      --color-background-secondary: #111827;
+      --color-border-tertiary: rgba(255,255,255,0.1);
+      --color-border-secondary: rgba(255,255,255,0.2);
+      --color-border-primary: rgba(255,255,255,0.35);
+    }
+    .hyp-label { background: #2e2458 !important; color: #c4b5fd !important; }
+    .label-purple { background: #2e2458 !important; color: #c4b5fd !important; }
+    .label-green { background: #064e3b !important; color: #6ee7b7 !important; }
+    .label-gray { background: #374151 !important; color: #d1d5db !important; }
+    .label-blue { background: #1e3a5f !important; color: #93c5fd !important; }
+    .business-table th { background: #1e3a5f !important; color: #93c5fd !important; }
+    .editable-label.label-purple { color: #c4b5fd !important; }
+  }
+  body {
+    font-family: var(--font-sans);
+    background: #f3f4f6;
+    color: var(--color-text-primary);
+    padding: 2rem 1rem;
+    min-height: 100vh;
+  }
+  @media (prefers-color-scheme: dark) {
+    body { background: #0f172a; }
+  }
+  .app { max-width: 1100px; margin: 0 auto; }
+  .page-title {
+    font-size: 13px; font-weight: 500; color: var(--color-text-tertiary);
+    text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1.5rem;
+  }
+  .customer-header {
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg);
+    padding: 1.25rem 1.5rem;
+    display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .customer-name-wrap { flex: 1; min-width: 200px; }
+  .customer-name-wrap label { font-size: 11px; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 4px; }
+  .customer-name { font-size: 22px; font-weight: 500; color: var(--color-text-primary); border: none; background: transparent; width: 100%; outline: none; border-bottom: 1.5px solid transparent; transition: border-color 0.15s; }
+  .customer-name:hover, .customer-name:focus { border-bottom-color: var(--color-border-secondary); }
+  .customer-name::placeholder { color: var(--color-text-tertiary); }
+  .meta-fields { display: flex; gap: 24px; flex-wrap: wrap; }
+  .meta-field { display: flex; flex-direction: column; gap: 2px; }
+  .meta-field label { font-size: 11px; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.08em; }
+  .meta-field input { font-size: 14px; border: none; background: transparent; color: var(--color-text-primary); outline: none; border-bottom: 1px solid var(--color-border-tertiary); padding-bottom: 2px; width: 160px; }
+  .meta-field input:focus { border-bottom-color: var(--color-border-primary); }
+
+  .section-label {
+    font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.09em;
+    padding: 5px 10px; border-radius: 4px; display: inline-block; margin-bottom: 12px;
+  }
+  .label-purple { background: #ede9ff; color: #534AB7; }
+  .label-green { background: #d4f5e4; color: #0F6E56; }
+  .label-gray { background: #e7e7e7; color: #5F5E5A; }
+  .label-blue { background: #e5edfb; color: #185FA5; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg);
+    padding: 1rem 1.25rem;
+  }
+  .card-title { font-size: 11px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+  .editable-field {
+    width: 100%; border: none; outline: none; background: transparent;
+    color: var(--color-text-primary); font-size: 14px; line-height: 1.6;
+    resize: none; min-height: 60px; font-family: var(--font-sans);
+    border-bottom: 1px solid transparent; transition: border-color 0.15s;
+  }
+  .editable-field:hover, .editable-field:focus { border-bottom-color: var(--color-border-secondary); }
+  .editable-field::placeholder { color: var(--color-text-tertiary); }
+
+  .hypothesis-grid {
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg);
+    overflow: hidden; margin-bottom: 0;
+  }
+  .hyp-row { display: grid; grid-template-columns: 170px 1fr; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .hyp-row:last-child { border-bottom: none; }
+  .hyp-label {
+    padding: 10px 14px; background: #f5f3ff;
+    font-size: 13px; font-weight: 500; color: #534AB7;
+    display: flex; align-items: center;
+    border-right: 0.5px solid var(--color-border-tertiary);
+  }
+  .hyp-value { padding: 8px 12px; display: flex; align-items: center; }
+  .hyp-value input, .hyp-value textarea {
+    width: 100%; border: none; outline: none; background: transparent;
+    color: var(--color-text-primary); font-size: 14px; font-family: var(--font-sans);
+    resize: none; line-height: 1.5;
+  }
+  .hyp-value input::placeholder, .hyp-value textarea::placeholder { color: var(--color-text-tertiary); }
+
+  .status-list { display: flex; flex-direction: column; gap: 10px; }
+  .status-item { display: flex; align-items: center; gap: 12px; }
+  .status-circle {
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 1.5px solid var(--color-border-primary);
+    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; cursor: pointer; background: var(--color-background-primary);
+  }
+  .status-circle.done { background: #2dc75c; border-color: #2dc75c; }
+  .status-circle.done::after {
+    content: ''; width: 6px; height: 10px;
+    border: 2px solid white; border-top: none; border-left: none;
+    transform: rotate(45deg) translate(-1px, -1px); display: block;
+  }
+  .status-text { font-size: 14px; color: var(--color-text-primary); flex: 1; }
+  .status-text.done-text { color: var(--color-text-secondary); text-decoration: line-through; }
+  .status-text input { border: none; outline: none; background: transparent; font-size: 14px; font-family: var(--font-sans); width: 100%; color: inherit; }
+
+  .business-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+  .business-table th {
+    text-align: left; padding: 8px 10px;
+    font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.07em;
+    color: #185FA5; background: #e5edfb;
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+  }
+  .business-table td { padding: 6px 8px; border-bottom: 0.5px solid var(--color-border-tertiary); vertical-align: top; }
+  .business-table tr:last-child td { border-bottom: none; }
+  .business-table td input {
+    width: 100%; border: none; outline: none; background: transparent;
+    font-size: 13px; font-family: var(--font-sans); color: var(--color-text-primary); padding: 2px 0;
+  }
+  .business-table td input::placeholder { color: var(--color-text-tertiary); }
+
+  .add-row-btn {
+    background: transparent; border: 0.5px solid var(--color-border-secondary);
+    border-radius: var(--border-radius-md); cursor: pointer;
+    color: var(--color-text-secondary); font-family: var(--font-sans); font-size: 13px;
+    padding: 5px 12px; transition: background 0.12s;
+  }
+  .add-row-btn:hover { background: var(--color-background-secondary); }
+  .del-row-btn { padding: 3px 8px; font-size: 12px; color: var(--color-text-tertiary); border: none; background: transparent; cursor: pointer; }
+  .del-row-btn:hover { color: #E24B4A; }
+
+  .divider { height: 0.5px; background: var(--color-border-tertiary); margin: 1.5rem 0; }
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+
+  .editable-label {
+    border: none; outline: none; background: transparent;
+    font-size: 11px; font-weight: 500; text-transform: uppercase;
+    letter-spacing: 0.09em; color: inherit; font-family: var(--font-sans);
+    cursor: text; min-width: 40px; width: 100%;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <p class="page-title">Agentförsäljning – Kunduppföljning</p>
+
+  <div class="customer-header">
+    <div class="customer-name-wrap">
+      <label>Kund</label>
+      <input class="customer-name" placeholder="Ange kundnamn..." type="text" />
+    </div>
+    <div class="meta-fields">
+      <div class="meta-field">
+        <label>Säljare</label>
+        <input type="text" placeholder="Namn..." />
+      </div>
+      <div class="meta-field">
+        <label>Solution Engineer</label>
+        <input type="text" placeholder="Namn..." />
+      </div>
+      <div class="meta-field">
+        <label>Datum</label>
+        <input type="date" />
+      </div>
+    </div>
+  </div>
+
+  <div class="two-col">
+
+    <div>
+      <div class="section-header">
+        <span class="section-label label-purple">Agent Hypotes</span>
+      </div>
+      <div class="hypothesis-grid">
+        <div class="hyp-row">
+          <div class="hyp-label"><input class="editable-label" value="Kundsegment" /></div>
+          <div class="hyp-value"><input type="text" placeholder="Ange segment..." /></div>
+        </div>
+        <div class="hyp-row">
+          <div class="hyp-label"><input class="editable-label" value="V. Område" /></div>
+          <div class="hyp-value"><input type="text" placeholder="Värdeområde..." /></div>
+        </div>
+        <div class="hyp-row">
+          <div class="hyp-label"><input class="editable-label" value="V. Process" /></div>
+          <div class="hyp-value"><input type="text" placeholder="Värdeprocess..." /></div>
+        </div>
+        <div class="hyp-row">
+          <div class="hyp-label"><input class="editable-label" value="Delprocess" /></div>
+          <div class="hyp-value"><input type="text" placeholder="Delprocess..." /></div>
+        </div>
+        <div class="hyp-row">
+          <div class="hyp-label"><input class="editable-label" value="Roll" /></div>
+          <div class="hyp-value"><input type="text" placeholder="Roll..." /></div>
+        </div>
+        <div class="hyp-row">
+          <div class="hyp-label"><input class="editable-label" value="Förmågor" /></div>
+          <div class="hyp-value"><textarea class="editable-field" rows="2" placeholder="Förmågor..."></textarea></div>
+        </div>
+        <div class="hyp-row">
+          <div class="hyp-label"><input class="editable-label" value="Nyttor" /></div>
+          <div class="hyp-value"><textarea class="editable-field" rows="2" placeholder="Nyttor..."></textarea></div>
+        </div>
+        <div class="hyp-row">
+          <div class="hyp-label"><input class="editable-label" value="User Story" /></div>
+          <div class="hyp-value"><textarea class="editable-field" rows="3" placeholder="Som [roll] vill jag [mål] så att [nytta]..."></textarea></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+
+      <div>
+        <div class="section-header">
+          <span class="section-label label-green">Verifiering med kund</span>
+        </div>
+        <div class="card" style="min-height: 180px;">
+          <div class="card-title">Anteckningar &amp; kundåterkoppling</div>
+          <textarea class="editable-field" rows="7" placeholder="Dokumentera kundinteraktioner, feedback och insikter här..."></textarea>
+        </div>
+      </div>
+
+      <div class="two-col" style="margin-bottom: 0;">
+        <div>
+          <div class="section-header">
+            <span class="section-label label-gray">Status &amp; Nästa steg</span>
+          </div>
+          <div class="card">
+            <div class="status-list" id="statusList">
+              <div class="status-item">
+                <div class="status-circle" onclick="toggleStatus(this)"></div>
+                <span class="status-text"><input type="text" value="Första möte genomfört" /></span>
+              </div>
+              <div class="status-item">
+                <div class="status-circle" onclick="toggleStatus(this)"></div>
+                <span class="status-text"><input type="text" value="Hypoteser verifierade" /></span>
+              </div>
+              <div class="status-item">
+                <div class="status-circle" onclick="toggleStatus(this)"></div>
+                <span class="status-text"><input type="text" value="Demo design påbörjad" /></span>
+              </div>
+              <div class="status-item">
+                <div class="status-circle" onclick="toggleStatus(this)"></div>
+                <span class="status-text"><input type="text" value="Identifierade Use Cases" /></span>
+              </div>
+              <div class="status-item">
+                <div class="status-circle" onclick="toggleStatus(this)"></div>
+                <span class="status-text"><input type="text" value="Nästa möte bokat" /></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="section-header">
+            <span class="section-label label-gray">User Story</span>
+          </div>
+          <div class="card" style="min-height: 160px;">
+            <textarea class="editable-field" rows="7" placeholder="Som [roll] vill jag [mål] så att [nytta]..."></textarea>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div>
+    <div class="section-header">
+      <span class="section-label label-blue">Möjlig affärs- och nyttologik</span>
+      <button class="add-row-btn" onclick="addBizRow()">+ Lägg till rad</button>
+    </div>
+    <div class="card" style="padding: 0; overflow: hidden;">
+      <table class="business-table">
+        <thead>
+          <tr>
+            <th style="width:14%">Roll</th>
+            <th style="width:18%">Delprocess</th>
+            <th style="width:26%">Bekräftad utmaning</th>
+            <th style="width:20%">Nyttotyp</th>
+            <th style="width:18%">Affärsrelevans</th>
+            <th style="width:4%"></th>
+          </tr>
+        </thead>
+        <tbody id="bizBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function toggleStatus(circle) {
+  const isDone = circle.classList.toggle('done');
+  const textEl = circle.parentElement.querySelector('.status-text');
+  if (isDone) textEl.classList.add('done-text');
+  else textEl.classList.remove('done-text');
+}
+
+function addBizRow() {
+  const tbody = document.getElementById('bizBody');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="text" placeholder="Roll..." /></td>
+    <td><input type="text" placeholder="Delprocess..." /></td>
+    <td><input type="text" placeholder="Utmaning..." /></td>
+    <td><input type="text" placeholder="Nyttotyp..." /></td>
+    <td><input type="text" placeholder="Relevans..." /></td>
+    <td><button class="del-row-btn" onclick="this.closest('tr').remove()">✕</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+for (let i = 0; i < 3; i++) addBizRow();
+
+document.querySelectorAll('textarea').forEach(ta => {
+  ta.addEventListener('input', () => {
+    ta.style.height = 'auto';
+    ta.style.height = ta.scrollHeight + 'px';
+  });
+});
+</script>
+</body>
+</html>
