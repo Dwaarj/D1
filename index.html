@@ -324,7 +324,7 @@
 <div class="toast" id="toast">Exporterad!</div>
 
 <script>
-
+let isLoadingState = true;
 // ==========================
 // SESSION HANDLING (LEVEL 2)
 // ==========================
@@ -456,17 +456,21 @@ function switchSession(id) {
 // ==========================
 
 function saveState() {
+  if (isLoadingState) return;
+
   const data = collectData();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-
-  // LEVEL 2: använd kundnamn som sessionsnamn
   saveSessionMeta(data.kund);
   populateSessionList();
 }
 
+
 function loadState() {
   const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) return;
+  if (!raw) {
+    isLoadingState = false;
+    return;
+  }
 
   const data = JSON.parse(raw);
 
@@ -477,27 +481,35 @@ function loadState() {
   document.getElementById('f-verifiering').value = data.verifieringMedKund || '';
   document.getElementById('f-userstory').value = data.userStory || '';
 
-  // Agent hypotes
-  document.querySelectorAll('.hyp-row').forEach(row => {
-    const label = row.querySelector('.editable-label')?.value;
-    const input = row.querySelector('input, textarea');
-    if (data.agentHypotes?.[label]) input.value = data.agentHypotes[label];
-  });
+  
+// Agent Hypotes
+document.querySelectorAll('.hypothesis-grid .hyp-row').forEach(row => {
+  const label = row.querySelector('.editable-label')?.value;
+  const input = row.querySelector('.hyp-value input, .hyp-value textarea');
+  if (data.agentHypotes?.[label] !== undefined) {
+    input.value = data.agentHypotes[label];
+  }
+});
 
-  // Status
-  const list = document.getElementById('statusList');
-  list.innerHTML = '';
-  data.statusOchNastaSteg?.forEach(s => {
-    const el = document.createElement('div');
-    el.className = 'status-item';
-    el.innerHTML = `
-      <div class="status-circle ${s.done ? 'done' : ''}" onclick="toggleStatus(this)"></div>
-      <span class="status-text ${s.done ? 'done-text' : ''}">
-        <input type="text" value="${s.label}">
-      </span>
-    `;
-    list.appendChild(el);
-  });
+
+  
+// Status
+const list = document.getElementById('statusList');
+list.innerHTML = '';
+
+data.statusOchNastaSteg?.forEach(s => {
+  const item = document.createElement('div');
+  item.className = 'status-item';
+
+  item.innerHTML = `
+    <div class="status-circle ${s.done ? 'done' : ''}" onclick="toggleStatus(this)"></div>
+    <span class="status-text ${s.done ? 'done-text' : ''}">
+      <input type="text" value="${s.label}">
+    </span>
+  `;
+  list.appendChild(item);
+});
+
 
   // Business table
   document.getElementById('bizBody').innerHTML = '';
