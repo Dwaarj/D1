@@ -1,210 +1,168 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Agent Sales Tracker</title>
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --font-sans: system-ui, -apple-system, sans-serif;
-    --color-text-primary: #1a1a1a;
-    --color-text-secondary: #6b7280;
-    --color-text-tertiary: #9ca3af;
-    --color-background-primary: #ffffff;
-    --color-background-secondary: #f9fafb;
-    --color-border-tertiary: rgba(0,0,0,0.12);
-    --color-border-secondary: rgba(0,0,0,0.25);
-    --color-border-primary: rgba(0,0,0,0.4);
-    --border-radius-md: 8px;
-    --border-radius-lg: 12px;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --color-text-primary: #f3f4f6;
-      --color-text-secondary: #9ca3af;
-      --color-text-tertiary: #6b7280;
-      --color-background-primary: #1f2937;
-      --color-background-secondary: #111827;
-      --color-border-tertiary: rgba(255,255,255,0.1);
-      --color-border-secondary: rgba(255,255,255,0.2);
-      --color-border-primary: rgba(255,255,255,0.35);
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agent Sales Tracker</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #f9f9f7; color: #1a1a1a; min-height: 100vh; }
+
+    .app { padding: 2rem; max-width: 1100px; margin: 0 auto; }
+
+    /* Header */
+    .customer-header {
+      display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid #e0e0dc;
+      margin-bottom: 1.5rem;
     }
-    .hyp-label { background: #2e2458 !important; color: #c4b5fd !important; }
-    .label-purple { background: #2e2458 !important; color: #c4b5fd !important; }
-    .label-green { background: #064e3b !important; color: #6ee7b7 !important; }
-    .label-gray { background: #374151 !important; color: #d1d5db !important; }
-    .label-blue { background: #1e3a5f !important; color: #93c5fd !important; }
-    .business-table th { background: #1e3a5f !important; color: #93c5fd !important; }
-    .editable-label.label-purple { color: #c4b5fd !important; }
-  }
-  body {
-    font-family: var(--font-sans);
-    background: #f3f4f6;
-    color: var(--color-text-primary);
-    padding: 2rem 1rem;
-    min-height: 100vh;
-  }
-  @media (prefers-color-scheme: dark) {
-    body { background: #0f172a; }
-  }
-  .app { max-width: 1100px; margin: 0 auto; }
-  .page-title {
-    font-size: 13px; font-weight: 500; color: var(--color-text-tertiary);
-    text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1.5rem;
-  }
-  .customer-header {
-    background: var(--color-background-primary);
-    border: 0.5px solid var(--color-border-tertiary);
-    border-radius: var(--border-radius-lg);
-    padding: 1.25rem 1.5rem;
-    display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
-    margin-bottom: 16px;
-  }
-  .customer-name-wrap { flex: 1; min-width: 200px; }
-  .customer-name-wrap label { font-size: 11px; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 4px; }
-  .customer-name { font-size: 22px; font-weight: 500; color: var(--color-text-primary); border: none; background: transparent; width: 100%; outline: none; border-bottom: 1.5px solid transparent; transition: border-color 0.15s; }
-  .customer-name:hover, .customer-name:focus { border-bottom-color: var(--color-border-secondary); }
-  .customer-name::placeholder { color: var(--color-text-tertiary); }
-  .meta-fields { display: flex; gap: 24px; flex-wrap: wrap; }
-  .meta-field { display: flex; flex-direction: column; gap: 2px; }
-  .meta-field label { font-size: 11px; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.08em; }
-  .meta-field input { font-size: 14px; border: none; background: transparent; color: var(--color-text-primary); outline: none; border-bottom: 1px solid var(--color-border-tertiary); padding-bottom: 2px; width: 160px; }
-  .meta-field input:focus { border-bottom-color: var(--color-border-primary); }
+    .customer-name-wrap { flex: 1; min-width: 200px; }
+    .customer-name-wrap label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 4px; }
+    .customer-name { font-size: 22px; font-weight: 500; color: #1a1a1a; border: none; background: transparent; width: 100%; outline: none; border-bottom: 1.5px solid transparent; transition: border-color 0.15s; }
+    .customer-name:hover, .customer-name:focus { border-bottom-color: #ccc; }
+    .customer-name::placeholder { color: #bbb; }
 
-  .section-label {
-    font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.09em;
-    padding: 5px 10px; border-radius: 4px; display: inline-block; margin-bottom: 12px;
-  }
-  .label-purple { background: #ede9ff; color: #534AB7; }
-  .label-green { background: #d4f5e4; color: #0F6E56; }
-  .label-gray { background: #e7e7e7; color: #5F5E5A; }
-  .label-blue { background: #e5edfb; color: #185FA5; }
+    .meta-fields { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-end; }
+    .meta-field { display: flex; flex-direction: column; gap: 2px; }
+    .meta-field label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.08em; }
+    .meta-field input { font-size: 14px; border: none; background: transparent; color: #1a1a1a; outline: none; border-bottom: 1px solid #ddd; padding-bottom: 2px; width: 150px; font-family: inherit; }
+    .meta-field input:focus { border-bottom-color: #999; }
 
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-  @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+    .export-btn {
+      display: flex; align-items: center; gap: 6px;
+      background: white; border: 1px solid #ddd;
+      border-radius: 8px; cursor: pointer;
+      color: #555; font-family: inherit; font-size: 13px;
+      padding: 7px 14px; transition: background 0.12s, border-color 0.12s;
+      flex-shrink: 0;
+    }
+    .export-btn:hover { background: #f0f0ee; border-color: #bbb; }
+    .export-btn svg { width: 14px; height: 14px; }
 
-  .card {
-    background: var(--color-background-primary);
-    border: 0.5px solid var(--color-border-tertiary);
-    border-radius: var(--border-radius-lg);
-    padding: 1rem 1.25rem;
-  }
-  .card-title { font-size: 11px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
-  .editable-field {
-    width: 100%; border: none; outline: none; background: transparent;
-    color: var(--color-text-primary); font-size: 14px; line-height: 1.6;
-    resize: none; min-height: 60px; font-family: var(--font-sans);
-    border-bottom: 1px solid transparent; transition: border-color 0.15s;
-  }
-  .editable-field:hover, .editable-field:focus { border-bottom-color: var(--color-border-secondary); }
-  .editable-field::placeholder { color: var(--color-text-tertiary); }
+    /* Section labels */
+    .section-label {
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.09em; padding: 5px 10px; border-radius: 4px;
+      display: inline-block; margin-bottom: 12px;
+    }
+    .label-purple { background: #ede9ff; color: #534AB7; }
+    .label-green  { background: #d4f5e4; color: #0F6E56; }
+    .label-gray   { background: #e7e7e7; color: #5a5a5a; }
+    .label-blue   { background: #e5edfb; color: #185FA5; }
 
-  .hypothesis-grid {
-    background: var(--color-background-primary);
-    border: 0.5px solid var(--color-border-tertiary);
-    border-radius: var(--border-radius-lg);
-    overflow: hidden; margin-bottom: 0;
-  }
-  .hyp-row { display: grid; grid-template-columns: 170px 1fr; border-bottom: 0.5px solid var(--color-border-tertiary); }
-  .hyp-row:last-child { border-bottom: none; }
-  .hyp-label {
-    padding: 10px 14px; background: #f5f3ff;
-    font-size: 13px; font-weight: 500; color: #534AB7;
-    display: flex; align-items: center;
-    border-right: 0.5px solid var(--color-border-tertiary);
-  }
-  .hyp-value { padding: 8px 12px; display: flex; align-items: center; }
-  .hyp-value input, .hyp-value textarea {
-    width: 100%; border: none; outline: none; background: transparent;
-    color: var(--color-text-primary); font-size: 14px; font-family: var(--font-sans);
-    resize: none; line-height: 1.5;
-  }
-  .hyp-value input::placeholder, .hyp-value textarea::placeholder { color: var(--color-text-tertiary); }
+    /* Layout */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    @media (max-width: 750px) { .two-col { grid-template-columns: 1fr; } }
 
-  .status-list { display: flex; flex-direction: column; gap: 10px; }
-  .status-item { display: flex; align-items: center; gap: 12px; }
-  .status-circle {
-    width: 22px; height: 22px; border-radius: 50%;
-    border: 1.5px solid var(--color-border-primary);
-    flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-    transition: all 0.15s; cursor: pointer; background: var(--color-background-primary);
-  }
-  .status-circle.done { background: #2dc75c; border-color: #2dc75c; }
-  .status-circle.done::after {
-    content: ''; width: 6px; height: 10px;
-    border: 2px solid white; border-top: none; border-left: none;
-    transform: rotate(45deg) translate(-1px, -1px); display: block;
-  }
-  .status-text { font-size: 14px; color: var(--color-text-primary); flex: 1; }
-  .status-text.done-text { color: var(--color-text-secondary); text-decoration: line-through; }
-  .status-text input { border: none; outline: none; background: transparent; font-size: 14px; font-family: var(--font-sans); width: 100%; color: inherit; }
+    /* Cards */
+    .card { background: white; border: 1px solid #e4e4e0; border-radius: 12px; padding: 1rem 1.25rem; }
+    .card-title { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
 
-  .business-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
-  .business-table th {
-    text-align: left; padding: 8px 10px;
-    font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.07em;
-    color: #185FA5; background: #e5edfb;
-    border-bottom: 0.5px solid var(--color-border-tertiary);
-  }
-  .business-table td { padding: 6px 8px; border-bottom: 0.5px solid var(--color-border-tertiary); vertical-align: top; }
-  .business-table tr:last-child td { border-bottom: none; }
-  .business-table td input {
-    width: 100%; border: none; outline: none; background: transparent;
-    font-size: 13px; font-family: var(--font-sans); color: var(--color-text-primary); padding: 2px 0;
-  }
-  .business-table td input::placeholder { color: var(--color-text-tertiary); }
+    /* Editable fields */
+    .editable-field {
+      width: 100%; border: none; outline: none;
+      background: transparent; color: #1a1a1a;
+      font-size: 14px; line-height: 1.6; resize: none;
+      min-height: 60px; font-family: inherit;
+    }
+    .editable-field::placeholder { color: #bbb; }
 
-  .add-row-btn {
-    background: transparent; border: 0.5px solid var(--color-border-secondary);
-    border-radius: var(--border-radius-md); cursor: pointer;
-    color: var(--color-text-secondary); font-family: var(--font-sans); font-size: 13px;
-    padding: 5px 12px; transition: background 0.12s;
-  }
-  .add-row-btn:hover { background: var(--color-background-secondary); }
-  .del-row-btn { padding: 3px 8px; font-size: 12px; color: var(--color-text-tertiary); border: none; background: transparent; cursor: pointer; }
-  .del-row-btn:hover { color: #E24B4A; }
+    /* Hypothesis grid */
+    .hypothesis-grid { background: white; border: 1px solid #e4e4e0; border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
+    .hyp-row { display: grid; grid-template-columns: 180px 1fr; border-bottom: 1px solid #f0f0ec; }
+    .hyp-row:last-child { border-bottom: none; }
+    .hyp-label { padding: 10px 14px; background: #f5f3ff; font-size: 13px; font-weight: 600; color: #534AB7; display: flex; align-items: center; border-right: 1px solid #ede9ff; }
+    .hyp-value { padding: 8px 12px; display: flex; align-items: center; }
+    .hyp-value input, .hyp-value textarea { width: 100%; border: none; outline: none; background: transparent; color: #1a1a1a; font-size: 14px; font-family: inherit; resize: none; line-height: 1.5; }
+    .hyp-value input::placeholder, .hyp-value textarea::placeholder { color: #bbb; }
+    .editable-label { border: none; outline: none; background: transparent; font-size: 13px; font-weight: 600; color: #534AB7; font-family: inherit; cursor: text; width: 100%; }
 
-  .divider { height: 0.5px; background: var(--color-border-tertiary); margin: 1.5rem 0; }
-  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    /* Status list */
+    .status-list { display: flex; flex-direction: column; gap: 10px; }
+    .status-item { display: flex; align-items: center; gap: 12px; }
+    .status-circle {
+      width: 22px; height: 22px; border-radius: 50%;
+      border: 1.5px solid #ccc; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s; cursor: pointer;
+    }
+    .status-circle.done { background: #2dc75c; border-color: #2dc75c; }
+    .status-circle.done::after {
+      content: ''; width: 6px; height: 10px;
+      border: 2px solid white; border-top: none; border-left: none;
+      transform: rotate(45deg) translate(-1px, -1px); display: block;
+    }
+    .status-text { font-size: 14px; color: #1a1a1a; flex: 1; }
+    .status-text.done-text { color: #aaa; text-decoration: line-through; }
+    .status-text input { border: none; outline: none; background: transparent; font-size: 14px; font-family: inherit; width: 100%; color: inherit; }
 
-  .editable-label {
-    border: none; outline: none; background: transparent;
-    font-size: 11px; font-weight: 500; text-transform: uppercase;
-    letter-spacing: 0.09em; color: inherit; font-family: var(--font-sans);
-    cursor: text; min-width: 40px; width: 100%;
-  }
-</style>
+    /* Business table */
+    .business-table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+    .business-table th { text-align: left; padding: 9px 10px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: #185FA5; background: #e5edfb; border-bottom: 1px solid #d0ddf5; }
+    .business-table td { padding: 7px 8px; border-bottom: 1px solid #f0f0ec; vertical-align: top; }
+    .business-table tr:last-child td { border-bottom: none; }
+    .business-table tr:hover td { background: #fafafa; }
+    .business-table td input { width: 100%; border: none; outline: none; background: transparent; font-size: 13px; font-family: inherit; color: #1a1a1a; padding: 2px 0; }
+    .business-table td input::placeholder { color: #bbb; }
+
+    /* Buttons */
+    .add-row-btn { background: white; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; color: #666; font-family: inherit; font-size: 13px; padding: 5px 12px; transition: background 0.12s; }
+    .add-row-btn:hover { background: #f0f0ee; }
+    .del-row-btn { padding: 3px 8px; font-size: 12px; color: #ccc; border: none; background: transparent; cursor: pointer; }
+    .del-row-btn:hover { color: #e24b4a; }
+
+    .divider { height: 1px; background: #e4e4e0; margin: 1.5rem 0; }
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: #1a1a1a; color: white;
+      border-radius: 8px; padding: 10px 16px;
+      font-size: 13px; font-family: inherit;
+      opacity: 0; transform: translateY(8px);
+      transition: opacity 0.2s, transform 0.2s;
+      pointer-events: none; z-index: 999;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+  </style>
 </head>
 <body>
-
 <div class="app">
 
-  <p class="page-title">Agentförsäljning – Kunduppföljning</p>
-
+  <!-- Header -->
   <div class="customer-header">
     <div class="customer-name-wrap">
       <label>Kund</label>
-      <input class="customer-name" placeholder="Ange kundnamn..." type="text" />
+      <input id="f-kund" class="customer-name" placeholder="Ange kundnamn..." type="text" />
     </div>
     <div class="meta-fields">
       <div class="meta-field">
         <label>Säljare</label>
-        <input type="text" placeholder="Namn..." />
+        <input id="f-saljare" type="text" placeholder="Namn..." />
       </div>
       <div class="meta-field">
         <label>Solution Engineer</label>
-        <input type="text" placeholder="Namn..." />
+        <input id="f-se" type="text" placeholder="Namn..." />
       </div>
       <div class="meta-field">
         <label>Datum</label>
-        <input type="date" />
+        <input id="f-datum" type="date" />
       </div>
+      <button class="export-btn" onclick="exportData()">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M8 2v8M5 7l3 3 3-3M2 11v2a1 1 0 001 1h10a1 1 0 001-1v-2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Exportera
+      </button>
     </div>
   </div>
 
+  <!-- Main two-column layout -->
   <div class="two-col">
 
+    <!-- Left: Agent Hypotes -->
     <div>
       <div class="section-header">
         <span class="section-label label-purple">Agent Hypotes</span>
@@ -212,39 +170,40 @@
       <div class="hypothesis-grid">
         <div class="hyp-row">
           <div class="hyp-label"><input class="editable-label" value="Kundsegment" /></div>
-          <div class="hyp-value"><input type="text" placeholder="Ange segment..." /></div>
+          <div class="hyp-value"><input id="h-1" type="text" placeholder="Ange segment..." /></div>
         </div>
         <div class="hyp-row">
           <div class="hyp-label"><input class="editable-label" value="V. Område" /></div>
-          <div class="hyp-value"><input type="text" placeholder="Värdeområde..." /></div>
+          <div class="hyp-value"><input id="h-2" type="text" placeholder="Värdeområde..." /></div>
         </div>
         <div class="hyp-row">
           <div class="hyp-label"><input class="editable-label" value="V. Process" /></div>
-          <div class="hyp-value"><input type="text" placeholder="Värdeprocess..." /></div>
+          <div class="hyp-value"><input id="h-3" type="text" placeholder="Värdeprocess..." /></div>
         </div>
         <div class="hyp-row">
           <div class="hyp-label"><input class="editable-label" value="Delprocess" /></div>
-          <div class="hyp-value"><input type="text" placeholder="Delprocess..." /></div>
+          <div class="hyp-value"><input id="h-4" type="text" placeholder="Delprocess..." /></div>
         </div>
         <div class="hyp-row">
           <div class="hyp-label"><input class="editable-label" value="Roll" /></div>
-          <div class="hyp-value"><input type="text" placeholder="Roll..." /></div>
+          <div class="hyp-value"><input id="h-5" type="text" placeholder="Roll..." /></div>
         </div>
         <div class="hyp-row">
           <div class="hyp-label"><input class="editable-label" value="Förmågor" /></div>
-          <div class="hyp-value"><textarea class="editable-field" rows="2" placeholder="Förmågor..."></textarea></div>
+          <div class="hyp-value"><textarea id="h-6" class="editable-field" rows="2" placeholder="Förmågor..."></textarea></div>
         </div>
         <div class="hyp-row">
           <div class="hyp-label"><input class="editable-label" value="Nyttor" /></div>
-          <div class="hyp-value"><textarea class="editable-field" rows="2" placeholder="Nyttor..."></textarea></div>
+          <div class="hyp-value"><textarea id="h-7" class="editable-field" rows="2" placeholder="Nyttor..."></textarea></div>
         </div>
         <div class="hyp-row">
           <div class="hyp-label"><input class="editable-label" value="User Story" /></div>
-          <div class="hyp-value"><textarea class="editable-field" rows="3" placeholder="Som [roll] vill jag [mål] så att [nytta]..."></textarea></div>
+          <div class="hyp-value"><textarea id="h-8" class="editable-field" rows="3" placeholder="Som [roll] vill jag [mål] så att [nytta]..."></textarea></div>
         </div>
       </div>
     </div>
 
+    <!-- Right: Verifiering, Status, User Story -->
     <div style="display: flex; flex-direction: column; gap: 16px;">
 
       <div>
@@ -253,7 +212,7 @@
         </div>
         <div class="card" style="min-height: 180px;">
           <div class="card-title">Anteckningar &amp; kundåterkoppling</div>
-          <textarea class="editable-field" rows="7" placeholder="Dokumentera kundinteraktioner, feedback och insikter här..."></textarea>
+          <textarea id="f-verifiering" class="editable-field" rows="7" placeholder="Dokumentera kundinteraktioner, feedback och insikter här..."></textarea>
         </div>
       </div>
 
@@ -293,7 +252,7 @@
             <span class="section-label label-gray">User Story</span>
           </div>
           <div class="card" style="min-height: 160px;">
-            <textarea class="editable-field" rows="7" placeholder="Som [roll] vill jag [mål] så att [nytta]..."></textarea>
+            <textarea id="f-userstory" class="editable-field" rows="7" placeholder="Som [roll] vill jag [mål] så att [nytta]..."></textarea>
           </div>
         </div>
       </div>
@@ -303,6 +262,7 @@
 
   <div class="divider"></div>
 
+  <!-- Business logic table -->
   <div>
     <div class="section-header">
       <span class="section-label label-blue">Möjlig affärs- och nyttologik</span>
@@ -327,36 +287,122 @@
 
 </div>
 
+<div class="toast" id="toast">Exporterad!</div>
+
 <script>
-function toggleStatus(circle) {
-  const isDone = circle.classList.toggle('done');
-  const textEl = circle.parentElement.querySelector('.status-text');
-  if (isDone) textEl.classList.add('done-text');
-  else textEl.classList.remove('done-text');
-}
+  function toggleStatus(circle) {
+    const isDone = circle.classList.toggle('done');
+    const textEl = circle.parentElement.querySelector('.status-text');
+    if (isDone) textEl.classList.add('done-text');
+    else textEl.classList.remove('done-text');
+  }
 
-function addBizRow() {
-  const tbody = document.getElementById('bizBody');
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td><input type="text" placeholder="Roll..." /></td>
-    <td><input type="text" placeholder="Delprocess..." /></td>
-    <td><input type="text" placeholder="Utmaning..." /></td>
-    <td><input type="text" placeholder="Nyttotyp..." /></td>
-    <td><input type="text" placeholder="Relevans..." /></td>
-    <td><button class="del-row-btn" onclick="this.closest('tr').remove()">✕</button></td>
-  `;
-  tbody.appendChild(tr);
-}
+  function addBizRow(vals) {
+    const tbody = document.getElementById('bizBody');
+    const tr = document.createElement('tr');
+    vals = vals || ['', '', '', '', ''];
+    tr.innerHTML = `
+      <td><input type="text" placeholder="Roll..." value="${vals[0]}" /></td>
+      <td><input type="text" placeholder="Delprocess..." value="${vals[1]}" /></td>
+      <td><input type="text" placeholder="Utmaning..." value="${vals[2]}" /></td>
+      <td><input type="text" placeholder="Nyttotyp..." value="${vals[3]}" /></td>
+      <td><input type="text" placeholder="Relevans..." value="${vals[4]}" /></td>
+      <td><button class="del-row-btn" onclick="this.closest('tr').remove()">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+  }
 
-for (let i = 0; i < 3; i++) addBizRow();
+  for (let i = 0; i < 3; i++) addBizRow();
 
-document.querySelectorAll('textarea').forEach(ta => {
-  ta.addEventListener('input', () => {
-    ta.style.height = 'auto';
-    ta.style.height = ta.scrollHeight + 'px';
+  document.querySelectorAll('textarea').forEach(ta => {
+    ta.addEventListener('input', () => {
+      ta.style.height = 'auto';
+      ta.style.height = ta.scrollHeight + 'px';
+    });
   });
-});
+
+  function collectData() {
+    const statusItems = [];
+    document.querySelectorAll('#statusList .status-item').forEach(item => {
+      statusItems.push({
+        label: item.querySelector('input').value,
+        done: item.querySelector('.status-circle').classList.contains('done')
+      });
+    });
+    const bizRows = [];
+    document.querySelectorAll('#bizBody tr').forEach(tr => {
+      const inputs = tr.querySelectorAll('input');
+      bizRows.push([inputs[0].value, inputs[1].value, inputs[2].value, inputs[3].value, inputs[4].value]);
+    });
+    const hyp = {};
+    document.querySelectorAll('.hypothesis-grid .hyp-row').forEach(row => {
+      const label = row.querySelector('.editable-label').value;
+      const valEl = row.querySelector('.hyp-value input[type=text], .hyp-value textarea');
+      hyp[label] = valEl ? valEl.value : '';
+    });
+    return {
+      kund: document.getElementById('f-kund').value,
+      saljare: document.getElementById('f-saljare').value,
+      solutionEngineer: document.getElementById('f-se').value,
+      datum: document.getElementById('f-datum').value,
+      agentHypotes: hyp,
+      verifieringMedKund: document.getElementById('f-verifiering').value,
+      statusOchNastaSteg: statusItems,
+      userStory: document.getElementById('f-userstory').value,
+      affarsOchNyttologik: bizRows,
+      exporterad: new Date().toLocaleString('sv-SE')
+    };
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  function exportData() {
+    const data = collectData();
+    const kund = data.kund || 'kund';
+    const datum = data.datum || new Date().toISOString().slice(0, 10);
+
+    const lines = [];
+    lines.push(`KUNDUPPFÖLJNING — ${kund.toUpperCase()}`);
+    lines.push('='.repeat(50));
+    lines.push(`Säljare: ${data.saljare}    Solution Engineer: ${data.solutionEngineer}    Datum: ${datum}`);
+    lines.push('');
+    lines.push('AGENT HYPOTES');
+    lines.push('-'.repeat(30));
+    Object.entries(data.agentHypotes).forEach(([k, v]) => { if (v) lines.push(`${k}: ${v}`); });
+    lines.push('');
+    lines.push('VERIFIERING MED KUND');
+    lines.push('-'.repeat(30));
+    lines.push(data.verifieringMedKund || '(ej ifyllt)');
+    lines.push('');
+    lines.push('STATUS & NÄSTA STEG');
+    lines.push('-'.repeat(30));
+    data.statusOchNastaSteg.forEach(s => { lines.push(`[${s.done ? 'x' : ' '}] ${s.label}`); });
+    lines.push('');
+    lines.push('USER STORY');
+    lines.push('-'.repeat(30));
+    lines.push(data.userStory || '(ej ifyllt)');
+    lines.push('');
+    lines.push('MÖJLIG AFFÄRS- OCH NYTTOLOGIK');
+    lines.push('-'.repeat(30));
+    lines.push('Roll | Delprocess | Bekräftad utmaning | Nyttotyp | Affärsrelevans');
+    data.affarsOchNyttologik.forEach(row => { if (row.some(c => c)) lines.push(row.join(' | ')); });
+    lines.push('');
+    lines.push(`Exporterad: ${data.exporterad}`);
+
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${kund.replace(/\s+/g, '-').toLowerCase()}-${datum}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Exporterad!');
+  }
 </script>
 </body>
 </html>
