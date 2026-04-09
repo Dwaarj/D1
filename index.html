@@ -156,6 +156,18 @@
         </svg>
         Exportera
       </button>
+
+<button class="export-btn" onclick="exportJSON()">
+  Exportera JSON
+</button>
+
+
+<button class="export-btn"
+  onclick="document.getElementById('jsonImport').click()">
+  Importera JSON
+</button>
+
+
     </div>
   </div>
 
@@ -290,6 +302,25 @@
 <div class="toast" id="toast">Exporterad!</div>
 
 <script>
+
+// ==========================
+// SESSION HANDLING (LEVEL 2)
+// ==========================
+function getSessionId() {
+  const params = new URLSearchParams(window.location.search);
+  let id = params.get('session');
+
+  if (!id) {
+    id = 'session-' + crypto.randomUUID();
+    params.set('session', id);
+    window.history.replaceState({}, '', `${location.pathname}?${params}`);
+  }
+  return id;
+}
+
+const SESSION_ID = getSessionId();
+const STORAGE_KEY = `agentSalesTracker_${SESSION_ID}`;
+
   function toggleStatus(circle) {
     const isDone = circle.classList.toggle('done');
     const textEl = circle.parentElement.querySelector('.status-text');
@@ -354,6 +385,54 @@
     };
   }
 
+// ==========================
+// SAVE / LOAD STATE
+// ==========================
+function saveState() {
+  const data = collectData();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function loadState() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return;
+
+  const data = JSON.parse(raw);
+
+  document.getElementById('f-kund').value = data.kund || '';
+  document.getElementById('f-saljare').value = data.saljare || '';
+  document.getElementById('f-se').value = data.solutionEngineer || '';
+  document.getElementById('f-datum').value = data.datum || '';
+  document.getElementById('f-verifiering').value = data.verifieringMedKund || '';
+  document.getElementById('f-userstory').value = data.userStory || '';
+
+  // Agent hypotes
+  document.querySelectorAll('.hyp-row').forEach(row => {
+    const label = row.querySelector('.editable-label')?.value;
+    const input = row.querySelector('input, textarea');
+    if (data.agentHypotes?.[label]) input.value = data.agentHypotes[label];
+  });
+
+  // Status
+  const list = document.getElementById('statusList');
+  list.innerHTML = '';
+  data.statusOchNastaSteg?.forEach(s => {
+    const el = document.createElement('div');
+    el.className = 'status-item';
+    el.innerHTML = `
+      <div class="status-circle ${s.done ? 'done' : ''}" onclick="toggleStatus(this)"></div>
+      <span class="status-text ${s.done ? 'done-text' : ''}">
+        <input type="text" value="${s.label}">
+      </span>
+    `;
+    list.appendChild(el);
+  });
+
+  // Business table
+  document.getElementById('bizBody').innerHTML = '';
+  data.affarsOchNyttologik?.forEach(row => addBizRow(row));
+}
+
   function showToast(msg) {
     const t = document.getElementById('toast');
     t.textContent = msg;
@@ -403,6 +482,57 @@
     URL.revokeObjectURL(url);
     showToast('Exporterad!');
   }
+
+// ==========================
+// EXPORT JSON
+// ==========================
+function exportJSON() {
+  const data = collectData();
+  const blob = new Blob(
+    [JSON.stringify(data, null, 2)],
+    { type: 'application/json' }
+  );
+
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${SESSION_ID}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+
+  showToast('JSON exporterad');
+}
+``
+
+// ==========================
+// AUTO SAVE / LOAD
+// ==========================
+document.addEventListener('input', saveState);
+window.addEventListener('DOMContentLoaded', loadState);
+
+
+// ==========================
+// IMPORT JSON
+// ==========================
+document.getElementById('jsonImport').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = ev => {
+    localStorage.setItem(STORAGE_KEY, ev.target.result);
+    location.reload();
+  };
+  reader.readAsText(file);
+});
+
 </script>
+
+<input
+  type="file"
+  id="jsonImport"
+  accept="application/json"
+  style="display:none"
+/>
+
 </body>
 </html>
