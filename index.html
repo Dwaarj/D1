@@ -126,10 +126,32 @@
       pointer-events: none; z-index: 999;
     }
     .toast.show { opacity: 1; transform: translateY(0); }
+
+/* =========================
+   SESSION BAR
+========================= */
+.session-bar button,
+.session-bar select {
+  height: 32px;
+}
+
   </style>
 </head>
 <body>
 <div class="app">
+
+<!-- ========================= -->
+  <!-- SESSION BAR (LEVEL 2) -->
+  <!-- ========================= -->
+  <div class="session-bar" style="display:flex;gap:12px;align-items:center;margin-bottom:12px;">
+    <button class="export-btn" onclick="createNewSession()">Ny session</button>
+
+    <select id="sessionList" onchange="switchSession(this.value)"
+      style="font-family:inherit;font-size:13px;padding:6px 10px;border-radius:6px;border:1px solid #ccc;">
+    </select>
+
+    <span id="sessionIdLabel" style="font-size:11px;color:#888"></span>
+  </div>
 
   <!-- Header -->
   <div class="customer-header">
@@ -321,6 +343,50 @@ function getSessionId() {
 const SESSION_ID = getSessionId();
 const STORAGE_KEY = `agentSalesTracker_${SESSION_ID}`;
 
+
+// ==========================
+// SESSION INDEX (LEVEL 2)
+// ==========================
+const SESSION_INDEX_KEY = 'agentSalesTracker_sessions';
+
+function getSessionIndex() {
+  return JSON.parse(localStorage.getItem(SESSION_INDEX_KEY) || '{}');
+}
+
+function saveSessionMeta(name) {
+  const index = getSessionIndex();
+  index[SESSION_ID] = name || '(Namnlös kund)';
+  localStorage.setItem(SESSION_INDEX_KEY, JSON.stringify(index));
+}
+
+function populateSessionList() {
+  const select = document.getElementById('sessionList');
+  if (!select) return;
+
+  const index = getSessionIndex();
+  select.innerHTML = '';
+
+  Object.entries(index).forEach(([id, name]) => {
+    const opt = document.createElement('option');
+    opt.value = id;
+    opt.textContent = name;
+    if (id === SESSION_ID) opt.selected = true;
+    select.appendChild(opt);
+  });
+
+  const lbl = document.getElementById('sessionIdLabel');
+  if (lbl) lbl.textContent = SESSION_ID;
+}
+
+function createNewSession() {
+  // ny session = samma page, utan ?session
+  window.location.href = window.location.pathname;
+}
+
+function switchSession(id) {
+  window.location.href = `${window.location.pathname}?session=${id}`;
+}
+
   function toggleStatus(circle) {
     const isDone = circle.classList.toggle('done');
     const textEl = circle.parentElement.querySelector('.status-text');
@@ -388,9 +454,14 @@ const STORAGE_KEY = `agentSalesTracker_${SESSION_ID}`;
 // ==========================
 // SAVE / LOAD STATE
 // ==========================
+
 function saveState() {
   const data = collectData();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
+  // LEVEL 2: använd kundnamn som sessionsnamn
+  saveSessionMeta(data.kund);
+  populateSessionList();
 }
 
 function loadState() {
@@ -507,7 +578,10 @@ function exportJSON() {
 // AUTO SAVE / LOAD
 // ==========================
 document.addEventListener('input', saveState);
-window.addEventListener('DOMContentLoaded', loadState);
+window.addEventListener('DOMContentLoaded', () => {
+  loadState();
+  populateSessionList();
+});
 
 
 // ==========================
