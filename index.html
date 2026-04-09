@@ -150,6 +150,12 @@
       style="font-family:inherit;font-size:13px;padding:6px 10px;border-radius:6px;border:1px solid #ccc;">
     </select>
 
+<button class="export-btn"
+  onclick="deleteCurrentSession()"
+  style="color:#b00020;border-color:#f0c0c0;">
+  Radera session
+</button>
+
     <span id="sessionIdLabel" style="font-size:11px;color:#888"></span>
   </div>
 
@@ -355,6 +361,12 @@ function getSessionIndex() {
 
 function saveSessionMeta(name) {
   const index = getSessionIndex();
+
+if (Object.keys(index).length <= 1) {
+  alert('Du kan inte radera den sista sessionen.');
+  return;
+}
+
   index[SESSION_ID] = name || '(Namnlös kund)';
   localStorage.setItem(SESSION_INDEX_KEY, JSON.stringify(index));
 }
@@ -385,6 +397,36 @@ function createNewSession() {
 
 function switchSession(id) {
   window.location.href = `${window.location.pathname}?session=${id}`;
+}
+
+
+// ==========================
+// DELETE CURRENT SESSION
+// ==========================
+function deleteCurrentSession() {
+  const index = getSessionIndex();
+
+  // Säkerhetskontroll
+  if (!index[SESSION_ID]) {
+    alert('Sessionen finns inte eller är redan borttagen.');
+    return;
+  }
+
+  const confirmed = confirm(
+    `Vill du verkligen radera sessionen “${index[SESSION_ID]}”?`
+  );
+
+  if (!confirmed) return;
+
+  // Ta bort själva sessionens data
+  localStorage.removeItem(STORAGE_KEY);
+
+  // Ta bort från sessions-index
+  delete index[SESSION_ID];
+  localStorage.setItem(SESSION_INDEX_KEY, JSON.stringify(index));
+
+  // Redirect: ny tom session
+  window.location.href = window.location.pathname;
 }
 
   function toggleStatus(circle) {
